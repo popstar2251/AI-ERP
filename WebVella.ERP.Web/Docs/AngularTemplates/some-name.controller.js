@@ -8,12 +8,12 @@
     'use strict';
 
     angular
-        .module('app')
+        .module('appCore')
         .config(config)
         .run(run)
         .controller('SomeNameController', controller);
 
-    // Config ///////////////////////////////////
+    // Configuration ///////////////////////////////////
     config.$inject = ['$stateProvider']; 
     
     /* @ngInject */

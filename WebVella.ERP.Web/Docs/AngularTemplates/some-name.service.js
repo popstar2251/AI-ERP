@@ -8,7 +8,7 @@
     'use strict';
 
     angular
-        .module('app')
+        .module('appCore')
         .service('someNameService', service);
 
     service.$inject = ['$http'];

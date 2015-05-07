@@ -8,7 +8,8 @@
     'use strict';
 
     angular
-        .module('webvella-areas') //only gets the module, already initialized in the base.module of the plugin. The lack of dependency [] makes the difference.
+        .module('webvellaAreas') //only gets the module, already initialized in the base.module of the plugin. The lack of dependency [] makes the difference.
+        .run(run)
         .config(config)
         .controller('WebVellaAreasDesktopController', controller);
 
@@ -18,8 +19,8 @@
     /* @ngInject */
     function config($stateProvider) {
         $stateProvider.state('webvella-areas-desktop', {
-            parent: "webvella-desktop-base",
-            url: '/browse', //  /desktop/areas after the parent state is prepended
+            parent: "webvella-desktop-base", // the state is defined in the webvella-desktop-plugin
+            url: '/browse', //  /desktop/browse after the parent state is prepended
             views: {
                 "contentView": {
                     controller: 'WebVellaAreasDesktopController',
@@ -38,11 +39,11 @@
 
 
     // Run //////////////////////////////////////
-    run.$inject = ['$rootScope', 'webvellaDesktopTopnavFactory'];
+    run.$inject = ['$rootScope'];
 
     /* @ngInject */
-    function run($rootScope, webvellaDesktopTopnavFactory) {
-        console.log("run executed")
+    function run($rootScope) {
+        
     };
 
 
@@ -53,7 +54,7 @@
     function controller($rootScope, $state, pageTitle) {
         /* jshint validthis:true */
         var contentData = this;
-        contentData.pageTitle = "Areas | " + pageTitle;
+        contentData.pageTitle = "Browse Areas | " + pageTitle;
 
 
         contentData.goHome = function () {

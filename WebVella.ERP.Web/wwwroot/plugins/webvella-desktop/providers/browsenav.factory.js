@@ -10,15 +10,17 @@
         .module('webvellaDesktop')
         .factory('webvellaDesktopBrowsenavFactory', factory);
 
-    factory.$inject = ['$log','$rootScope'];
+    factory.$inject = ['$log', '$rootScope'];
 
     /* @ngInject */
-    function factory($log,$rootScope) {
+    function factory($log, $rootScope) {
         var browsenav = [];
+
         var exports = {
-            generateInitializeFromAreas: generateInitializeFromAreas,
+            generateMenuItemFromArea: generateMenuItemFromArea,
             addItem: addItem,
-            getBrowsenav: getBrowsenav
+            getBrowsenav: getBrowsenav,
+            initBrowsenav: initBrowsenav
         };
         //Some code
 
@@ -26,26 +28,45 @@
 
         ////////////////
 
-        function generateInitializeFromAreas(areas) {
-            $log.debug('webvellaDesktop>providers>browsenav.factory>generateInitializeFromAreas> function called');
-            browsenav = [];
-            areas.sort(function (a, b) { return parseFloat(a.weight) - parseFloat(b.weight); });
-            for (var i = 0; i < areas.length; i++) {
-                var menuItem = {};
-                menuItem.label = areas[i].label;
-                menuItem.stateName = "webvella-areas-view";
-                menuItem.stateParams = {
-                    "areaName":areas[i].name
-                };
-                menuItem.parentName = "";
-                menuItem.nodes = [];
-                menuItem.weight = areas[i].weight;
-                menuItem.color = areas[i].color;
-                menuItem.iconName = areas[i].iconName;
-                browsenav.push(menuItem);
+        function generateMenuItemFromArea(area) {
+            $log.debug('webvellaDesktop>providers>browsenav.factory>generateMenuItemFromArea> function called');
+
+            //Redirect to the first entity of the area
+            var firstEntityName = null;
+            var firstEntitySectionName = null;
+            for (var i = 0; i < area.sections.length; i++) {
+                if (area.sections[i].entities.length > 0) {
+                    firstEntityName = area.sections[i].entities[0].name;
+                    firstEntitySectionName = area.sections[i].name;
+                    break;
+                }
             }
 
-            return browsenav
+            var menuItem = {};
+            menuItem.label = area.label;
+
+            if (firstEntityName != null) {
+                menuItem.stateName = "webvella-areas-entities";
+                menuItem.stateParams = {
+                    "areaName": area.name,
+                    "sectionName": firstEntitySectionName,
+                    "entityName": firstEntityName
+                };
+            }
+            else {
+                //If no entities related raise error and cancel navigation
+                alert("This area has no entities attached");
+                $log.error('webvellaDesktop>providers>browsenav.factory>generateMenuItemFromArea> This area has no entities attached');
+                menuItem.stateName = "webvella-root-home";
+                menuItem.stateParams = {};
+            }
+
+            menuItem.parentName = "";
+            menuItem.nodes = [];
+            menuItem.weight = area.weight;
+            menuItem.color = area.color;
+            menuItem.iconName = area.iconName;
+            return menuItem
         }
 
         ////////////////
@@ -67,6 +88,12 @@
             return browsenav
         }
 
+        ////////////////
 
+        function initBrowsenav() {
+            $log.debug('webvellaDesktop>providers>browsenav.factory>initBrowsenav> function called');
+            browsenav = [];
+            return browsenav
+        }
     }
 })();

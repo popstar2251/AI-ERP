@@ -8,7 +8,7 @@
             <i class="fa fa-database"></i>
         </div>
         <div class="entity-box">
-            <h4 class="no-link" title="Entity Definitions">Entity Definitions</h4>
+            <h4 class="no-link" title="Entities">Entities</h4>
         </div>
         <div class="spacer-box"></div>
         <div class="divider-box">
@@ -39,15 +39,26 @@
             <tr>
                 <th class="actions"></th>
                 <th class="name">Name</th>
+                <th class="fields" style="width:6em"># fields</th>
+                <th class="views" style="width:6em"># views</th>
+                <th class="lists" style="width:6em"># lists</th>
+                <th class="forms" style="width:6em"># forms</th>
         </thead>
         <tbody>
             <tr ng-repeat="entity in contentData.entities">
                 <td class="actions">
-                    <a href="" class="btn btn-default">
+                    <a ui-sref="webvella-admin-entity-details({name: '{{entity.name}}' })" class="btn btn-default">
                         <i class="fa fa-eye"></i>
                     </a>
                 </td>
-                <td class="name">{{entity.name}}</td>
+                <td class="name">
+                    {{entity.name}}<br/>
+                    <span class="go-gray">Label: {{entity.label}}</span><span class="divider">|</span> <span class="go-gray">Plural Label: {{entity.pluralLabel}}</span>
+                </td>
+                <td class="fields">{{entity.fields.length}}</td>
+                <td class="views">{{entity.views.length}}</td>
+                <td class="lists">{{entity.lists.length}}</td>
+                <td class="forms">{{entity.forms.length}}</td>
             </tr>
 
         </tbody>

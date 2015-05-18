@@ -38,7 +38,8 @@
                 }
             },
             resolve: {
-                resolvedCurrentEntityMeta: resolveCurrentEntityMeta
+                resolvedCurrentEntityMeta: resolveCurrentEntityMeta,
+                resolvedEntityRecordsList: resolveEntityRecordsList
             },
             data: {
 
@@ -47,9 +48,8 @@
     };
 
 
-    // Resolve Function /////////////////////////
+    //#region << Resolve Functions >>/////////////////////////
     resolveCurrentEntityMeta.$inject = ['$q', '$log', 'webvellaAdminService', '$stateParams', '$state', '$timeout'];
-
     /* @ngInject */
     function resolveCurrentEntityMeta($q, $log, webvellaAdminService, $stateParams, $state, $timeout) {
         $log.debug('webvellaAdmin>entity-details> BEGIN state.resolved');
@@ -87,17 +87,56 @@
     }
 
 
-
-    // Controller ///////////////////////////////
-    controller.$inject = ['$scope', '$log', '$rootScope', '$state', 'pageTitle', 'resolvedCurrentEntityMeta', '$modal'];
-
+    resolveEntityRecordsList.$inject = ['$q', '$log', 'webvellaAdminService', '$stateParams', '$state', '$timeout'];
     /* @ngInject */
-    function controller($scope, $log, $rootScope, $state, pageTitle, resolvedCurrentEntityMeta, $modal) {
-        $log.debug('webvellaAdmin>entity-details> START controller.exec');
+    function resolveEntityRecordsList($q, $log, webvellaAdminService, $stateParams, $state, $timeout) {
+        $log.debug('webvellaAdmin>entity-records-list>resolveEntityRecordsList BEGIN state.resolved');
+        // Initialize
+        var defer = $q.defer();
+
+        // Process
+        function successCallback(response) {
+            if (response.object == null) {
+                $timeout(function () {
+                    $state.go("webvella-root-not-found");
+                }, 0);
+            }
+            else {
+                defer.resolve(response.object);
+            }
+        }
+
+        function errorCallback(response) {
+            if (response.object == null) {
+                $timeout(function () {
+                    $state.go("webvella-root-not-found");
+                }, 0);
+            }
+            else {
+                defer.resolve(response.object);
+            }
+        }
+
+        webvellaAdminService.getEntityListsList($stateParams.entityName, successCallback, errorCallback);
+
+        // Return
+        $log.debug('webvellaAdmin>entity-records-list>resolveEntityRecordsList END state.resolved');
+        return defer.promise;
+    }
+    //#endregion
+
+    //#region << Controller >> ///////////////////////////////
+    controller.$inject = ['$scope', '$log', '$rootScope', '$state', 'pageTitle', 'resolvedCurrentEntityMeta', '$modal', 'resolvedEntityRecordsList'];
+    /* @ngInject */
+    function controller($scope, $log, $rootScope, $state, pageTitle, resolvedCurrentEntityMeta, $modal, resolvedEntityRecordsList) {
+        $log.debug('webvellaAdmin>entity-records-list> START controller.exec');
         /* jshint validthis:true */
         var contentData = this;
+        //#region << Initialize the current entity >>
         contentData.entity = resolvedCurrentEntityMeta;
-        //Update page title
+        //#endregion
+
+        //#region << Update page title & hide the side menu >>
         contentData.pageTitle = "Entity Details | " + pageTitle;
         $rootScope.$emit("application-pageTitle-update", contentData.pageTitle);
         //Hide Sidemenu
@@ -107,14 +146,15 @@
             $rootScope.$emit("application-body-sidebar-menu-isVisible-update", true);
             $log.debug('rootScope>events> "application-body-sidebar-menu-isVisible-update" emitted');
         });
+        //#endregion
 
-     
+        //#region << Initialize the lists >>
+        contentData.lists = resolvedEntityRecordsList;
+        //#endregion
 
-        activate();
-        $log.debug('webvellaAdmin>entity-details> END controller.exec');
-        function activate() { }
+        $log.debug('webvellaAdmin>entity-records-list> END controller.exec');
     }
-
+    //#endregion
 
     //// Modal Controllers
     deleteEntityController.$inject = ['parentData', '$modalInstance', '$log', 'webvellaAdminService', 'ngToast', '$timeout', '$state'];

@@ -673,26 +673,26 @@
 
         //Generate roles and checkboxes
         contentData.entity.roles = [];
-        for (var i = 0; i < resolvedRolesList.entities.length; i++) {
+        for (var i = 0; i < resolvedRolesList.data.length; i++) {
 
             //Now create the new entity.roles array
             var role = {};
-            role.id = resolvedRolesList.entities[i].id;
-            role.label = resolvedRolesList.entities[i].label;
+            role.id = resolvedRolesList.data[i].id;
+            role.label = resolvedRolesList.data[i].name;
             role.canRead = false;
-            if (contentData.entity.recordPermissions.canRead.indexOf(resolvedRolesList.entities[i].id) > -1) {
+            if (contentData.entity.recordPermissions.canRead.indexOf(resolvedRolesList.data[i].id) > -1) {
                 role.canRead = true;
             }
             role.canCreate = false;
-            if (contentData.entity.recordPermissions.canCreate.indexOf(resolvedRolesList.entities[i].id) > -1) {
+            if (contentData.entity.recordPermissions.canCreate.indexOf(resolvedRolesList.data[i].id) > -1) {
                 role.canCreate = true;
             }
             role.canUpdate = false;
-            if (contentData.entity.recordPermissions.canUpdate.indexOf(resolvedRolesList.entities[i].id) > -1) {
+            if (contentData.entity.recordPermissions.canUpdate.indexOf(resolvedRolesList.data[i].id) > -1) {
                 role.canUpdate = true;
             }
             role.canDelete = false;
-            if (contentData.entity.recordPermissions.canDelete.indexOf(resolvedRolesList.entities[i].id) > -1) {
+            if (contentData.entity.recordPermissions.canDelete.indexOf(resolvedRolesList.data[i].id) > -1) {
                 role.canDelete = true;
             }
             contentData.entity.roles.push(role);

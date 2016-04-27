@@ -46,8 +46,8 @@
 			},
 			resolve: {
 				loadDependency: loadDependency,
-				resolvedCurrentView: resolveCurrentView,
-				resolvedCurrentParentView: function () { return null; }
+				resolvedCurrentParentView: function () { return null; },
+				resolvedCurrentView: resolveCurrentView
 			}
 		})
 		//general view in an area with the area sidebar
@@ -76,8 +76,8 @@
 			},
 			resolve: {
 				loadDependency: loadDependency,
-				resolvedCurrentView: resolveCurrentView,
-				resolvedCurrentParentView: function () { return null; }
+				resolvedCurrentParentView: function () { return null; },
+				resolvedCurrentView: resolveCurrentView
 			}
 		})
 		.state('webvella-areas-view-general-in-view', {
@@ -105,76 +105,13 @@
 			},
 			resolve: {
 				loadDependency: loadDependency,
-				resolvedCurrentView: resolveCurrentView,
-				resolvedCurrentParentView: function () { return null; }
+				resolvedCurrentParentView: resolveCurrentParentView,
+				resolvedCurrentView: resolveCurrentView
 			}
 		});
 	};
 
 	//#region << Resolve Function >> /////////////////////////
-
-	resolveCurrentView.$inject = ['$q', '$log', 'webvellaCoreService', '$stateParams', '$state', '$timeout', 'resolvedCurrentEntityMeta'];
-
-	function resolveCurrentView($q, $log, webvellaCoreService, $stateParams, $state, $timeout, resolvedCurrentEntityMeta) {
-
-		// Initialize
-		var defer = $q.defer();
-
-		// Process
-		function successCallback(response) {
-			if (response.object === null) {
-				alert("error in response!");
-			}
-			else if (response.object.meta === null) {
-				alert("The view with name: " + $stateParams.viewName + " does not exist");
-			} else {
-				defer.resolve(response.object);
-			}
-		}
-
-		function errorCallback(response) {
-			if (response.object === null) {
-				alert("error in response!");
-			}
-			else {
-				defer.reject(response.message);
-			}
-		}
-
-		var userHasUpdateEntityPermission = webvellaCoreService.userHasRecordPermissions(resolvedCurrentEntityMeta, "canRead");
-		if (!userHasUpdateEntityPermission) {
-			alert("you do not have permissions to view records from this entity!");
-			defer.reject("you do not have permissions to view records from this entity");
-		}
-
-		webvellaCoreService.getRecordByViewName($stateParams.recordId, $stateParams.viewName, $stateParams.entityName, successCallback, errorCallback);
-
-		return defer.promise;
-	}
-
-	loadDependency.$inject = ['$ocLazyLoad', '$q', '$http', '$state', '$timeout', '$stateParams', 'wvAppConstants', 'resolvedCurrentEntityMeta'];
-	function loadDependency($ocLazyLoad, $q, $http, $state, $timeout, $stateParams, wvAppConstants, resolvedCurrentEntityMeta) {
-		var lazyDeferred = $q.defer();
-		var listServiceJavascriptPath = wvAppConstants.apiBaseUrl + 'meta/entity/' + $stateParams.entityName + '/view/' + $stateParams.viewName + '/service.js?v=' + resolvedCurrentEntityMeta.hash;
-		var loadFilesArray = [];
-		loadFilesArray.push(listServiceJavascriptPath);
-
-		return $ocLazyLoad.load({
-			cache: false,
-			files: loadFilesArray
-		}).then(function () {
-			return lazyDeferred.resolve("ready");
-		},
-		function error(err) {
-			$timeout(function () {
-				$state.go('webvella-core-error', { 'code': '404', 'url': "some-url-error" });
-			}, 0);
-			lazyDeferred.reject(err);
-			//return err;
-		});
-
-	}
-
 	resolveCurrentParentView.$inject = ['$q', '$log', 'webvellaCoreService', '$stateParams', '$state', '$timeout', 'resolvedCurrentEntityMeta'];
 	function resolveCurrentParentView($q, $log, webvellaCoreService, $stateParams, $state, $timeout, resolvedCurrentEntityMeta) {
 
@@ -213,6 +150,105 @@
 		return defer.promise;
 	}
 
+	resolveCurrentView.$inject = ['$q', '$log', 'webvellaCoreService', '$stateParams', '$state', '$timeout', 'resolvedCurrentEntityMeta','resolvedCurrentParentView'];
+
+	function resolveCurrentView($q, $log, webvellaCoreService, $stateParams, $state, $timeout, resolvedCurrentEntityMeta,resolvedCurrentParentView) {
+
+		// Initialize
+		var defer = $q.defer();
+
+		// Process
+		function successCallback(response) {
+			if (response.object === null) {
+				alert("error in response!");
+			}
+			else if (response.object.meta === null) {
+				alert("The view with name: " + $stateParams.viewName + " does not exist");
+			} else {
+				defer.resolve(response.object);
+			}
+		}
+
+		function errorCallback(response) {
+			if (response.object === null) {
+				alert("error in response!");
+			}
+			else {
+				defer.reject(response.message);
+			}
+		}
+
+		var userHasUpdateEntityPermission = webvellaCoreService.userHasRecordPermissions(resolvedCurrentEntityMeta, "canRead");
+		if (!userHasUpdateEntityPermission) {
+			alert("you do not have permissions to view records from this entity!");
+			defer.reject("you do not have permissions to view records from this entity");
+		}
+		var parentView = fastCopy(resolvedCurrentParentView);
+		if(parentView == null){
+			webvellaCoreService.getRecordByViewName($stateParams.recordId, $stateParams.viewName, $stateParams.entityName, successCallback, errorCallback);
+		}
+		else{
+			var currentView = {};
+			currentView.meta = null;
+			currentView.data = [];
+			if($stateParams.viewName.startsWith("$view$")){
+				//View from the same entity
+				parentView.meta.sidebar.items.forEach(function(sidebarItem){
+					if(sidebarItem.dataName == $stateParams.viewName){
+					  currentView.meta = sidebarItem.meta;
+					  currentView.data = parentView.data[0][$stateParams.viewName];
+					}	
+				});
+				defer.resolve(currentView);
+			}
+			else{
+			
+			}
+			
+		}
+
+		return defer.promise;
+	}
+
+	loadDependency.$inject = ['$ocLazyLoad', '$q', '$http', '$state', '$timeout', '$stateParams', 'wvAppConstants', 'resolvedCurrentEntityMeta','resolvedCurrentParentView'];
+	function loadDependency($ocLazyLoad, $q, $http, $state, $timeout, $stateParams, wvAppConstants, resolvedCurrentEntityMeta,resolvedCurrentParentView) {
+		var lazyDeferred = $q.defer();
+		var listServiceJavascriptPath = "";
+		if(resolvedCurrentParentView == null){
+			//Parent view is reviewed
+			listServiceJavascriptPath = wvAppConstants.apiBaseUrl + 'meta/entity/' + $stateParams.entityName + '/view/' + $stateParams.viewName + '/service.js?v=' + resolvedCurrentEntityMeta.hash;
+		}
+		else {
+		   //A view in another view is reviewed
+			var dataNameArray = fastCopy($stateParams.viewName).split('$');		
+			if(dataNameArray.length == 3){
+				//it is view from the current entity  e.g. $view$second
+				var realViewName = 	dataNameArray[2];
+				listServiceJavascriptPath = wvAppConstants.apiBaseUrl + 'meta/entity/' + $stateParams.entityName + '/view/' + realViewName + '/service.js?v=' + resolvedCurrentEntityMeta.hash;
+			}
+		}
+		
+		
+		
+		var loadFilesArray = [];
+		loadFilesArray.push(listServiceJavascriptPath);
+
+		return $ocLazyLoad.load({
+			cache: false,
+			files: loadFilesArray
+		}).then(function () {
+			return lazyDeferred.resolve("ready");
+		},
+		function error(err) {
+			$timeout(function () {
+				$state.go('webvella-core-error', { 'code': '404', 'url': "some-url-error" });
+			}, 0);
+			lazyDeferred.reject(err);
+			//return err;
+		});
+
+	}
+
 	//#endregion
 
 
@@ -220,12 +256,12 @@
 
 	controller.$inject = ['$filter', '$uibModal', '$log', '$q', '$rootScope', '$state', '$stateParams', '$scope', '$window', 'pageTitle', 'webvellaCoreService',
         'resolvedAreas', '$timeout', 'resolvedCurrentView', 'ngToast', 'wvAppConstants', 'resolvedCurrentEntityMeta', 'resolvedEntityRelationsList', 'resolvedCurrentUser',
-		'resolvedCurrentUserEntityPermissions', 'webvellaViewActionService', '$sessionStorage'];
+		'resolvedCurrentUserEntityPermissions', 'webvellaViewActionService', '$sessionStorage','resolvedCurrentParentView'];
 
 
 	function controller($filter, $uibModal, $log, $q, $rootScope, $state, $stateParams, $scope, $window, pageTitle, webvellaCoreService,
         resolvedAreas, $timeout, resolvedCurrentView, ngToast, wvAppConstants, resolvedCurrentEntityMeta, resolvedEntityRelationsList, resolvedCurrentUser,
-		resolvedCurrentUserEntityPermissions, webvellaViewActionService, $sessionStorage) {
+		resolvedCurrentUserEntityPermissions, webvellaViewActionService, $sessionStorage,resolvedCurrentParentView) {
 
 		//#region << ngCtrl initialization >>
 		var ngCtrl = this;
@@ -242,7 +278,20 @@
 		//#region << Initialize main objects >>
 		ngCtrl.view = {};
 		ngCtrl.view.meta = fastCopy(resolvedCurrentView.meta);
-		ngCtrl.view.data = fastCopy(resolvedCurrentView.data[0]);
+		if(resolvedCurrentView.data.length == 1){
+			ngCtrl.view.data = fastCopy(resolvedCurrentView.data[0]);		
+		}
+		else{
+			ngCtrl.view.data = fastCopy(resolvedCurrentView.data);
+		}
+		if(resolvedCurrentParentView == null){
+			ngCtrl.parentView = null;		
+		}
+		else{
+			ngCtrl.parentView = {};
+			ngCtrl.parentView.meta = fastCopy(resolvedCurrentParentView.meta);
+			ngCtrl.parentView.data = fastCopy(resolvedCurrentParentView.data[0]);
+		}
 		ngCtrl.entity = fastCopy(resolvedCurrentEntityMeta);
 		ngCtrl.entityRelations = fastCopy(resolvedEntityRelationsList);
 		ngCtrl.areas = fastCopy(resolvedAreas.data);

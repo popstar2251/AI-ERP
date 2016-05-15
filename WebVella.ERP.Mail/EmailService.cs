@@ -17,14 +17,15 @@ namespace WebVella.ERP.Mail
 
 			_settings = new EmailSettings()
 			{
-				Server = "mail.gmail.com",
-				EnableSsl = false,
-				Port = 25,
-				UserName = "fake@gmail.com",
-				Password = "test",
-				DisplayName = "Peter Dorko"	
+			Server = "mail.efrea.com",
+			EnableSsl = false,
+			Port = 25,
+			UserName = "no-reply@efrea.com",
+			Password = "123efrea_",
+			DisplayName = "Peter Dorko"
 			};
 		}
+
 
 		public void SendEmail(string toEmailAddress, string subject, string body)
 		{
@@ -53,7 +54,8 @@ namespace WebVella.ERP.Mail
 			message.Subject = subject;
 			message.Body = body;
 			message.IsBodyHtml = true;
-			smtp.Send(message);
+			//smtp.Send(message);
+			smtp.SendMailAsync(message);
 
 		}
 

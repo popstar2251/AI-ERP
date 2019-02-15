@@ -15,20 +15,7 @@ namespace WebVella.Erp.Plugins.Mail.Hooks.Page
 	{
 		public IActionResult OnPost(RecordDetailsPageModel pageModel)
 		{
-			var emailId = (Guid)pageModel.DataModel.GetProperty("Record.id");
-
-			var internalSmtpSrv = new SmtpInternalService();
-			Email email = internalSmtpSrv.GetEmail(emailId);
-			SmtpService smtpService = new ServiceManager().GetSmtpService(email.ServiceId);
-			internalSmtpSrv.SendEmail(email, smtpService);
-
-			if (email.Status == EmailStatus.Sent)
-				pageModel.TempData.Put("ScreenMessage", new ScreenMessage() { Message = "Email was successfully sent", Type=ScreenMessageType.Success, Title="Success" });
-			else
-				pageModel.TempData.Put("ScreenMessage", new ScreenMessage() { Message = email.ServerError, Type = ScreenMessageType.Error, Title="Error" });
-
-			var returnUrl = pageModel.HttpContext.Request.Query["returnUrl"];
-			return new RedirectResult($"/mail/emails/all/r/{emailId}/details?returnUrl={returnUrl}");
+			return new SmtpInternalService().EmailSendNowOnPost(pageModel);
 		}
 	}
 }

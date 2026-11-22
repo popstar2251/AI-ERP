@@ -151,9 +151,3 @@ new artifact into this project.
 
 * see [LICENSE](https://github.com/WebVella/WebVella-ERP/blob/master/LICENSE.txt) file
 
-## Contact
-
-#### Developer/Company
-
-* Homepage: [webvella.com](http://webvella.com)
-* Twitter: [@webvella](https://twitter.com/webvella "webvella on twitter")
